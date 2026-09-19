@@ -103,23 +103,21 @@ class Report:
         egress = report["egress"]
         axes = report["axes"]
 
+        socket_count = len(egress['attempts'])
+        socket_text = f"**Egress: {egress['verdict']}** — {socket_count} socket{'s' if socket_count != 1 else ''}"
+
+        if egress["allowlist"]:
+            socket_text += f", all to `{', '.join(egress['allowlist'])}`"
+
         lines = [
             f"### {endpoint['server']} · {endpoint['model']} · {report['timestamp'][:10]}",
             "",
-            f"**Egress: {egress['verdict']}** — {len(egress['attempts'])} socket{'s' if len(egress['attempts']) != 1 else ''}",
-        ]
-
-        if egress["allowlist"]:
-            lines.append(f", all to `{', '.join(egress['allowlist'])}`")
-        else:
-            lines.append("")
-
-        lines.extend([
+            socket_text,
             f"Monitor self-test {monitor['selftest']}.",
             "",
             "| Axis | Verdict | Number |",
             "|---|---|---|",
-        ])
+        ]
 
         # Native tool calls
         if "native_tool_calls" in axes:

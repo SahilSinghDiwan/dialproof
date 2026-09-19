@@ -93,45 +93,58 @@ Deferred to increment 2: embeddings, logprobs, seed determinism, context-length 
 
 ## Sample output
 
+**JSON report:**
+
 ```json
 {
   "dialproof_version": "0.1.0",
-  "run_id": "2026-09-19T11-04-22Z-vllm-qwen3",
-  "endpoint": {"base_url": "http://vllm.internal:8000/v1", "server": "vllm/0.11.2", "model": "qwen3-32b"},
+  "run_id": "2026-09-19T093935-test-model",
+  "endpoint": {
+    "base_url": "http://127.0.0.1:8765/v1",
+    "server": "test-endpoint",
+    "model": "test-model"
+  },
   "transport": "raw-httpx",
-  "monitor": {"layer": "L1-audithook", "selftest": "PASS", "denied_host_dialed": "blocked.invalid:443"},
+  "monitor": {
+    "layer": "L1-audithook",
+    "selftest": "PASS",
+    "denied_host_dialed": "blocked.invalid"
+  },
   "egress": {
     "verdict": "SEALED",
-    "allowlist": ["vllm.internal:8000"],
-    "attempts": [{"host": "vllm.internal", "port": 8000, "ip": "10.42.0.7", "count": 83, "decision": "allow"}]
+    "allowlist": ["127.0.0.1:8765"],
+    "attempts": [{"host": "127.0.0.1", "port": 8765, "count": 164, "decision": "allow"}]
   },
   "axes": {
-    "native_tool_calls": {"verdict": "DEGRADED", "n": 20, "native": 0, "json_fallback": 20, "fail": 0, "note": "no tool_calls field; content parsed as tool-shaped JSON in 20/20"},
-    "json_schema_adherence": {"verdict": "FAIL", "n": 50, "adherence": 0.86, "failures": {"enum_drift": 5, "extra_keys": 2, "missing_required": 0, "type_coercion": 0}},
-    "streaming_shape": {"verdict": "PASS", "sse_wellformed": true, "role_once": true, "stream_equals_nonstream": true, "toolcall_index_monotonic": true, "usage_on_final": false},
-    "token_accuracy": {"verdict": "FAIL", "n": 10, "exact_match": 3, "prompt_token_delta": {"min": -4, "median": -1, "max": 0}}
+    "native_tool_calls": {"verdict": "FAIL", "n": 20, "native": 0, "json_fallback": 0, "fail": 20},
+    "json_schema_adherence": {"verdict": "FAIL", "n": 50, "adherence": 0.0, "failures": {"type_coercion": 50}},
+    "streaming_shape": {"verdict": "PASS", "sse_wellformed": true, "role_once": true, "stream_equals_nonstream": true, "usage_on_final": false},
+    "token_accuracy": {"verdict": "FAIL", "n": 10, "exact_match": 0, "prompt_token_delta": {"min": -5, "median": -4, "max": -2}}
   },
-  "cost": {"wall_clock_s": 214, "requests": 83, "usd": null, "note": "self-hosted; no per-token price applies"},
+  "cost": {"wall_clock_s": 0, "requests": 164, "usd": null, "note": "self-hosted; no per-token price applies"},
   "verdict": {"conformance": "1/4 axes pass", "egress": "SEALED"}
 }
 ```
 
-Rendered to Markdown:
+**Rendered to Markdown:**
 
-```
-### vllm/0.11.2 · qwen3-32b · 2026-09-19
+```markdown
+### test-endpoint · test-model · 2026-09-19
 
-**Egress: SEALED** — 83 sockets, all to `vllm.internal:8000`. Monitor self-test PASS.
+**Egress: SEALED** — 164 sockets, all to `127.0.0.1:8765`
+Monitor self-test PASS.
 
 | Axis | Verdict | Number |
 |---|---|---|
-| Native tool calls | DEGRADED | 0/20 native; 20/20 silent JSON-mode fallback |
-| JSON-schema adherence | FAIL | 86% (43/50) — 5 enum drift, 2 extra keys |
-| Streaming delta shape | PASS | 4/5 sub-assertions; `usage` absent on final chunk |
-| Token-count accuracy | FAIL | 3/10 exact; prompt tokens under-reported by up to 4 |
+| Native tool calls | FAIL | 0/20 native; 0/20 JSON-mode |
+| JSON-schema adherence | FAIL | 0% (0/50) — type_coercion: 50 |
+| Streaming delta shape | PASS | 4/5 sub-assertions; usage absent on final chunk |
+| Token-count accuracy | FAIL | 0/10 exact; tokens under-reported by up to 5 |
 
-Reproduce: `dialproof verify runs/2026-09-19-vllm-qwen3/report.json`
+Reproduce: `dialproof verify 2026-09-19T093935-test-model/report.json`
 ```
+
+This sample run measured a test endpoint and found that streaming works correctly, but native tool calls fail (the endpoint doesn't return `message.tool_calls`), schema adherence fails due to type coercion, and token counts are under-reported.
 
 ## Egress monitoring — layered
 

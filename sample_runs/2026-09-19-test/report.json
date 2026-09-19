@@ -1,0 +1,81 @@
+{
+  "dialproof_version": "0.1.0",
+  "timestamp": "2026-09-19T09:39:35.348850Z",
+  "run_id": "2026-09-19T093935-test-model",
+  "endpoint": {
+    "base_url": "http://127.0.0.1:8765/v1",
+    "server": "unknown",
+    "model": "test-model"
+  },
+  "transport": "raw-httpx",
+  "monitor": {
+    "layer": "L1-audithook",
+    "selftest": "PASS",
+    "denied_host_dialed": "blocked.invalid"
+  },
+  "egress": {
+    "verdict": "SEALED",
+    "allowlist": [
+      "127.0.0.1:8765"
+    ],
+    "attempts": [
+      {
+        "host": "127.0.0.1",
+        "port": 8765,
+        "ip": null,
+        "count": 164,
+        "decision": "allow"
+      }
+    ]
+  },
+  "axes": {
+    "native_tool_calls": {
+      "verdict": "FAIL",
+      "n": 20,
+      "native": 0,
+      "json_fallback": 0,
+      "fail": 20,
+      "note": "0 native; 0 silent JSON-mode fallback"
+    },
+    "json_schema_adherence": {
+      "verdict": "FAIL",
+      "n": 50,
+      "adherence": 0.0,
+      "failures": {
+        "enum_drift": 0,
+        "extra_keys": 0,
+        "missing_required": 0,
+        "type_coercion": 50
+      }
+    },
+    "streaming_shape": {
+      "verdict": "PASS",
+      "sse_wellformed": true,
+      "role_once": true,
+      "stream_equals_nonstream": true,
+      "toolcall_index_monotonic": true,
+      "usage_on_final": false
+    },
+    "token_accuracy": {
+      "verdict": "FAIL",
+      "n": 10,
+      "exact_match": 0,
+      "prompt_token_delta": {
+        "min": -5,
+        "median": -4,
+        "max": -2
+      }
+    }
+  },
+  "cost": {
+    "wall_clock_s": 0,
+    "requests": 1,
+    "usd": null,
+    "note": "self-hosted; no per-token price applies"
+  },
+  "artifacts_sha256": "",
+  "verdict": {
+    "conformance": "1/4 axes pass",
+    "egress": "SEALED"
+  }
+}
