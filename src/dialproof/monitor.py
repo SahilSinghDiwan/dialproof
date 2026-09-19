@@ -5,7 +5,7 @@ import sys
 import traceback
 from dataclasses import dataclass
 from threading import Lock
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set
 
 
 @dataclass
@@ -31,7 +31,7 @@ class EgressMonitor:
             allowlist: Set of allowed "host:port" strings
         """
         self.allowlist = allowlist
-        self.attempts: dict[str, EgressAttempt] = {}
+        self.attempts: Dict[str, EgressAttempt] = {}
         self.denied: List[EgressAttempt] = []
         self._lock = Lock()
         self._violations_found = False

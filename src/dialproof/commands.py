@@ -4,7 +4,7 @@ import socket
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Set
+from typing import List, Set
 
 import httpx
 
@@ -16,7 +16,7 @@ from .report import EgressInfo, EndpointInfo, MonitorInfo, Report
 def run_command(
     endpoint: str,
     model: str,
-    allow: list[str],
+    allow: List[str],
     out: str,
     transport: str = "raw-httpx",
 ) -> int:
