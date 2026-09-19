@@ -1,17 +1,16 @@
 """Core command implementations."""
 
-import json
 import socket
 import sys
-from pathlib import Path
-from typing import Optional, Set
 from datetime import datetime
+from pathlib import Path
+from typing import Set
 
 import httpx
 
-from .monitor import EgressMonitor
 from .axes import AxisTester
-from .report import Report, EndpointInfo, MonitorInfo, EgressInfo
+from .monitor import EgressMonitor
+from .report import EgressInfo, EndpointInfo, MonitorInfo, Report
 
 
 def run_command(

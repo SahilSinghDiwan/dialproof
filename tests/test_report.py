@@ -1,10 +1,9 @@
 """Tests for report generation."""
 
-import json
-from pathlib import Path
 import tempfile
-import pytest
-from dialproof.report import Report, EndpointInfo, MonitorInfo, EgressInfo
+from pathlib import Path
+
+from dialproof.report import EgressInfo, EndpointInfo, MonitorInfo, Report
 
 
 def test_report_to_dict():
@@ -23,7 +22,13 @@ def test_report_to_dict():
         ],
     )
     axes = {
-        "native_tool_calls": {"verdict": "PASS", "n": 20, "native": 20, "json_fallback": 0, "fail": 0},
+        "native_tool_calls": {
+            "verdict": "PASS",
+            "n": 20,
+            "native": 20,
+            "json_fallback": 0,
+            "fail": 0,
+        },
     }
     cost = {"wall_clock_s": 10, "requests": 20, "usd": None}
 
@@ -92,11 +97,30 @@ def test_report_markdown_render():
     egress = EgressInfo(
         verdict="SEALED",
         allowlist=["localhost:8000"],
-        attempts=[{"host": "localhost", "port": 8000, "ip": None, "count": 10, "decision": "allow"}],
+        attempts=[
+            {
+                "host": "localhost",
+                "port": 8000,
+                "ip": None,
+                "count": 10,
+                "decision": "allow",
+            }
+        ],
     )
     axes = {
-        "native_tool_calls": {"verdict": "PASS", "n": 20, "native": 20, "json_fallback": 0, "fail": 0},
-        "json_schema_adherence": {"verdict": "PASS", "n": 50, "adherence": 0.95, "failures": {}},
+        "native_tool_calls": {
+            "verdict": "PASS",
+            "n": 20,
+            "native": 20,
+            "json_fallback": 0,
+            "fail": 0,
+        },
+        "json_schema_adherence": {
+            "verdict": "PASS",
+            "n": 50,
+            "adherence": 0.95,
+            "failures": {},
+        },
     }
     cost = {"wall_clock_s": 10, "requests": 20, "usd": None}
 

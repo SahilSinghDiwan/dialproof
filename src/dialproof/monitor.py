@@ -3,9 +3,9 @@
 import socket
 import sys
 import traceback
-from dataclasses import dataclass, field
-from typing import List, Optional, Set
+from dataclasses import dataclass
 from threading import Lock
+from typing import List, Optional, Set
 
 
 @dataclass

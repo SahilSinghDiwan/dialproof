@@ -1,6 +1,5 @@
 """Tests for egress monitoring."""
 
-import pytest
 from dialproof.monitor import EgressMonitor
 
 

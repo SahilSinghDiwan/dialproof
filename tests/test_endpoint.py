@@ -1,10 +1,10 @@
 """Mock OpenAI-compatible endpoint for testing."""
 
 import json
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from threading import Thread
-import time
 import socket
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from threading import Thread
 
 
 class MockEndpointHandler(BaseHTTPRequestHandler):
@@ -34,7 +34,6 @@ class MockEndpointHandler(BaseHTTPRequestHandler):
         """Handle /chat/completions endpoint."""
         model = request_data.get("model", "test-model")
         stream = request_data.get("stream", False)
-        messages = request_data.get("messages", [])
         tools = request_data.get("tools", [])
         response_format = request_data.get("response_format")
 
@@ -50,7 +49,10 @@ class MockEndpointHandler(BaseHTTPRequestHandler):
                 {"choices": [{"delta": {"content": " from"}}]},
                 {"choices": [{"delta": {"content": " test"}}]},
                 {"choices": [{"delta": {"content": " endpoint"}}]},
-                {"choices": [{"delta": {"content": ""}}], "usage": {"prompt_tokens": 10, "completion_tokens": 5}},
+                {
+                    "choices": [{"delta": {"content": ""}}],
+                    "usage": {"prompt_tokens": 10, "completion_tokens": 5},
+                },
             ]
 
             for chunk in chunks:

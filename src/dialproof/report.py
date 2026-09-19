@@ -1,12 +1,10 @@
 """Report generation and rendering."""
 
 import json
-import hashlib
+from dataclasses import dataclass
 from datetime import datetime
-from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from .axes import Verdict
 
 
 @dataclass
@@ -104,7 +102,8 @@ class Report:
         axes = report["axes"]
 
         socket_count = len(egress['attempts'])
-        socket_text = f"**Egress: {egress['verdict']}** — {socket_count} socket{'s' if socket_count != 1 else ''}"
+        plural = "s" if socket_count != 1 else ""
+        socket_text = f"**Egress: {egress['verdict']}** — {socket_count} socket{plural}"
 
         if egress["allowlist"]:
             socket_text += f", all to `{', '.join(egress['allowlist'])}`"
@@ -135,10 +134,12 @@ class Report:
             failures_str = "; ".join(
                 f"{k}: {v}" for k, v in js.get("failures", {}).items() if v > 0
             )
+            n_val = js.get("n", 0)
+            passed = int(js.get("adherence", 0) * n_val)
+            failures_part = f" — {failures_str}" if failures_str else ""
             lines.append(
                 f"| JSON-schema adherence | {js.get('verdict', 'UNKNOWN')} | "
-                f"{adherence_pct}% ({int(js.get('adherence', 0) * js.get('n', 0))}/{js.get('n', 0)})"
-                f"{' — ' + failures_str if failures_str else ''} |"
+                f"{adherence_pct}% ({passed}/{n_val}){failures_part} |"
             )
 
         # Streaming delta shape
@@ -150,10 +151,14 @@ class Report:
                 ss.get("stream_equals_nonstream", False),
                 ss.get("toolcall_index_monotonic", False),
             ])
+            usage_note = (
+                "; usage absent on final chunk"
+                if not ss.get("usage_on_final", False)
+                else ""
+            )
             lines.append(
                 f"| Streaming delta shape | {ss.get('verdict', 'UNKNOWN')} | "
-                f"{sub_passed}/5 sub-assertions"
-                f"{'; usage absent on final chunk' if not ss.get('usage_on_final', False) else ''} |"
+                f"{sub_passed}/5 sub-assertions{usage_note} |"
             )
 
         # Token accuracy
@@ -161,10 +166,15 @@ class Report:
             ta = axes["token_accuracy"]
             delta = ta.get("prompt_token_delta", {})
             max_delta = delta.get("max", 0)
+            direction = "under" if max_delta < 0 else "over"
+            delta_note = (
+                f"; tokens {direction}-reported by up to {abs(max_delta)}"
+                if max_delta != 0
+                else ""
+            )
             lines.append(
                 f"| Token-count accuracy | {ta.get('verdict', 'UNKNOWN')} | "
-                f"{ta.get('exact_match', 0)}/{ta.get('n', 0)} exact"
-                f"{'; tokens ' + ('under' if max_delta < 0 else 'over') + '-reported by up to ' + str(abs(max_delta)) if max_delta != 0 else ''} |"
+                f"{ta.get('exact_match', 0)}/{ta.get('n', 0)} exact{delta_note} |"
             )
 
         lines.extend([

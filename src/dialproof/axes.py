@@ -2,8 +2,8 @@
 
 import json
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
 from enum import Enum
+from typing import Any, Dict
 
 
 class Verdict(str, Enum):
@@ -178,7 +178,12 @@ class AxisTester:
                 pass
 
         adherence_rate = adherence_count / n if n > 0 else 0
-        verdict = Verdict.PASS if adherence_count == n else (Verdict.DEGRADED if adherence_count > n * 0.5 else Verdict.FAIL)
+        if adherence_count == n:
+            verdict = Verdict.PASS
+        elif adherence_count > n * 0.5:
+            verdict = Verdict.DEGRADED
+        else:
+            verdict = Verdict.FAIL
 
         return JsonSchemaResult(
             verdict=verdict, n=n, adherence=adherence_rate, failures=failures
@@ -305,7 +310,12 @@ class AxisTester:
         else:
             min_delta = max_delta = median_delta = 0
 
-        verdict = Verdict.PASS if exact_match == n else (Verdict.DEGRADED if exact_match > n * 0.5 else Verdict.FAIL)
+        if exact_match == n:
+            verdict = Verdict.PASS
+        elif exact_match > n * 0.5:
+            verdict = Verdict.DEGRADED
+        else:
+            verdict = Verdict.FAIL
 
         return TokenAccuracyResult(
             verdict=verdict,
