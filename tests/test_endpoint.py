@@ -12,7 +12,7 @@ class MockEndpointHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """Handle POST requests."""
-        content_length = int(self.headers.get('Content-Length', 0))
+        content_length = int(self.headers.get("Content-Length", 0))
         body = self.rfile.read(content_length)
         request_data = json.loads(body) if body else {}
 
@@ -79,19 +79,15 @@ class MockEndpointHandler(BaseHTTPRequestHandler):
                                         "type": "function",
                                         "function": {
                                             "name": "test_tool",
-                                            "arguments": '{"name": "test", "value": 42}'
-                                        }
+                                            "arguments": '{"name": "test", "value": 42}',
+                                        },
                                     }
-                                ]
+                                ],
                             },
-                            "finish_reason": "tool_calls"
+                            "finish_reason": "tool_calls",
                         }
                     ],
-                    "usage": {
-                        "prompt_tokens": 10,
-                        "completion_tokens": 5,
-                        "total_tokens": 15
-                    }
+                    "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
                 }
             # Handle JSON schema response format
             elif response_format:
@@ -105,16 +101,12 @@ class MockEndpointHandler(BaseHTTPRequestHandler):
                             "index": 0,
                             "message": {
                                 "role": "assistant",
-                                "content": '{"status": "active", "count": 42}'
+                                "content": '{"status": "active", "count": 42}',
                             },
-                            "finish_reason": "stop"
+                            "finish_reason": "stop",
                         }
                     ],
-                    "usage": {
-                        "prompt_tokens": 10,
-                        "completion_tokens": 5,
-                        "total_tokens": 15
-                    }
+                    "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
                 }
             else:
                 response = {
@@ -125,18 +117,11 @@ class MockEndpointHandler(BaseHTTPRequestHandler):
                     "choices": [
                         {
                             "index": 0,
-                            "message": {
-                                "role": "assistant",
-                                "content": "Hello from test endpoint"
-                            },
-                            "finish_reason": "stop"
+                            "message": {"role": "assistant", "content": "Hello from test endpoint"},
+                            "finish_reason": "stop",
                         }
                     ],
-                    "usage": {
-                        "prompt_tokens": 10,
-                        "completion_tokens": 5,
-                        "total_tokens": 15
-                    }
+                    "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15},
                 }
 
             self.send_response(200)
@@ -148,9 +133,7 @@ class MockEndpointHandler(BaseHTTPRequestHandler):
         """Handle /models endpoint."""
         response = {
             "object": "list",
-            "data": [
-                {"id": "test-model", "object": "model", "created": int(time.time())}
-            ]
+            "data": [{"id": "test-model", "object": "model", "created": int(time.time())}],
         }
 
         self.send_response(200)
@@ -166,7 +149,7 @@ class MockEndpointHandler(BaseHTTPRequestHandler):
 def find_free_port():
     """Find a free port."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('', 0))
+        s.bind(("", 0))
         s.listen(1)
         port = s.getsockname()[1]
     return port
@@ -174,7 +157,7 @@ def find_free_port():
 
 def run_mock_endpoint(port=8765):
     """Run mock endpoint in a background thread."""
-    server = HTTPServer(('127.0.0.1', port), MockEndpointHandler)
+    server = HTTPServer(("127.0.0.1", port), MockEndpointHandler)
     thread = Thread(target=server.serve_forever, daemon=True)
     thread.start()
     time.sleep(0.1)  # Give server time to start

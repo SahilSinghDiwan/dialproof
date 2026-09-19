@@ -11,6 +11,7 @@ from typing import List, Optional, Set
 @dataclass
 class EgressAttempt:
     """Record of a socket connection attempt."""
+
     host: str
     port: int
     ip: Optional[str]
@@ -130,11 +131,13 @@ class EgressMonitor:
         with self._lock:
             result = []
             for attempt in self.attempts.values():
-                result.append({
-                    "host": attempt.host,
-                    "port": attempt.port,
-                    "ip": attempt.ip,
-                    "count": attempt.count,
-                    "decision": attempt.decision,
-                })
+                result.append(
+                    {
+                        "host": attempt.host,
+                        "port": attempt.port,
+                        "ip": attempt.ip,
+                        "count": attempt.count,
+                        "decision": attempt.decision,
+                    }
+                )
             return {"attempts": result, "denied_count": len(self.denied)}

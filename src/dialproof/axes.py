@@ -8,6 +8,7 @@ from typing import Any, Dict
 
 class Verdict(str, Enum):
     """Verdict for an axis."""
+
     PASS = "PASS"
     DEGRADED = "DEGRADED"
     FAIL = "FAIL"
@@ -16,6 +17,7 @@ class Verdict(str, Enum):
 @dataclass
 class ToolCallResult:
     """Result of native tool calls test."""
+
     verdict: Verdict
     n: int
     native: int
@@ -27,6 +29,7 @@ class ToolCallResult:
 @dataclass
 class JsonSchemaResult:
     """Result of JSON-schema adherence test."""
+
     verdict: Verdict
     n: int
     adherence: float
@@ -36,6 +39,7 @@ class JsonSchemaResult:
 @dataclass
 class StreamingShapeResult:
     """Result of streaming delta shape test."""
+
     verdict: Verdict
     sse_wellformed: bool
     role_once: bool
@@ -47,6 +51,7 @@ class StreamingShapeResult:
 @dataclass
 class TokenAccuracyResult:
     """Result of token-count accuracy test."""
+
     verdict: Verdict
     n: int
     exact_match: int
@@ -185,9 +190,7 @@ class AxisTester:
         else:
             verdict = Verdict.FAIL
 
-        return JsonSchemaResult(
-            verdict=verdict, n=n, adherence=adherence_rate, failures=failures
-        )
+        return JsonSchemaResult(verdict=verdict, n=n, adherence=adherence_rate, failures=failures)
 
     def _validate_schema(self, obj: Any, schema: Dict[str, Any]) -> bool:
         """Basic schema validation."""
@@ -289,6 +292,7 @@ class AxisTester:
 
                 try:
                     import tiktoken
+
                     enc = tiktoken.encoding_for_model(self.model)
                     actual_tokens = len(enc.encode(prompt))
                 except Exception:

@@ -101,7 +101,7 @@ class Report:
         egress = report["egress"]
         axes = report["axes"]
 
-        socket_count = len(egress['attempts'])
+        socket_count = len(egress["attempts"])
         plural = "s" if socket_count != 1 else ""
         socket_text = f"**Egress: {egress['verdict']}** — {socket_count} socket{plural}"
 
@@ -145,16 +145,16 @@ class Report:
         # Streaming delta shape
         if "streaming_shape" in axes:
             ss = axes["streaming_shape"]
-            sub_passed = sum([
-                ss.get("sse_wellformed", False),
-                ss.get("role_once", False),
-                ss.get("stream_equals_nonstream", False),
-                ss.get("toolcall_index_monotonic", False),
-            ])
+            sub_passed = sum(
+                [
+                    ss.get("sse_wellformed", False),
+                    ss.get("role_once", False),
+                    ss.get("stream_equals_nonstream", False),
+                    ss.get("toolcall_index_monotonic", False),
+                ]
+            )
             usage_note = (
-                "; usage absent on final chunk"
-                if not ss.get("usage_on_final", False)
-                else ""
+                "; usage absent on final chunk" if not ss.get("usage_on_final", False) else ""
             )
             lines.append(
                 f"| Streaming delta shape | {ss.get('verdict', 'UNKNOWN')} | "
@@ -168,19 +168,19 @@ class Report:
             max_delta = delta.get("max", 0)
             direction = "under" if max_delta < 0 else "over"
             delta_note = (
-                f"; tokens {direction}-reported by up to {abs(max_delta)}"
-                if max_delta != 0
-                else ""
+                f"; tokens {direction}-reported by up to {abs(max_delta)}" if max_delta != 0 else ""
             )
             lines.append(
                 f"| Token-count accuracy | {ta.get('verdict', 'UNKNOWN')} | "
                 f"{ta.get('exact_match', 0)}/{ta.get('n', 0)} exact{delta_note} |"
             )
 
-        lines.extend([
-            "",
-            f"Reproduce: `dialproof verify {self.run_id}/report.json`",
-        ])
+        lines.extend(
+            [
+                "",
+                f"Reproduce: `dialproof verify {self.run_id}/report.json`",
+            ]
+        )
 
         return "\n".join(lines)
 

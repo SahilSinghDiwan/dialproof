@@ -73,13 +73,15 @@ def run_command(
         egress_summary = monitor.get_summary()
         attempts = []
         for attempt in egress_summary["attempts"]:
-            attempts.append({
-                "host": attempt["host"],
-                "port": attempt["port"],
-                "ip": attempt.get("ip"),
-                "count": attempt["count"],
-                "decision": attempt["decision"],
-            })
+            attempts.append(
+                {
+                    "host": attempt["host"],
+                    "port": attempt["port"],
+                    "ip": attempt.get("ip"),
+                    "count": attempt["count"],
+                    "decision": attempt["decision"],
+                }
+            )
 
         egress_verdict = "SEALED" if not monitor.had_violations() else "OPEN"
 
@@ -176,6 +178,7 @@ def run_command(
     except Exception as e:
         print(f"Error during run: {e}", file=sys.stderr)
         import traceback
+
         traceback.print_exc()
         return 1
 
