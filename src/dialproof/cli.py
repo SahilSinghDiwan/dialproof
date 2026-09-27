@@ -21,7 +21,16 @@ def main():
     help="Allowed hosts (can be used multiple times)",
 )
 @click.option("--out", required=True, help="Output directory for reports")
-@click.option("--transport", default="raw-httpx", help="Transport layer (raw-httpx or litellm)")
+@click.option(
+    "--transport",
+    default="raw-httpx",
+    type=click.Choice(["raw-httpx"]),
+    help=(
+        "Transport layer. Only 'raw-httpx' is implemented; a 'litellm' transport "
+        "is planned and is deliberately not accepted until it exists, so no report "
+        "can be labelled with a transport that did not run."
+    ),
+)
 def run(endpoint, model, allow, out, transport):
     """Run the capability probe against an endpoint."""
     exit_code = run_command(endpoint, model, list(allow), out, transport)

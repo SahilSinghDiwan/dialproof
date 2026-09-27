@@ -12,6 +12,12 @@ from .axes import AxisTester
 from .monitor import EgressMonitor
 from .report import EgressInfo, EndpointInfo, MonitorInfo, Report
 
+SELFTEST_HOST = "blocked.invalid"
+
+
+class MonitorSelftestError(RuntimeError):
+    """Raised when the monitor selftest cannot observe a denied attempt."""
+
 
 def run_command(
     endpoint: str,
@@ -36,17 +42,19 @@ def run_command(
     host = ep.split("/")[0]
     allowlist.add(host)
 
-    # Set up monitor
-    monitor = EgressMonitor(allowlist)
-    monitor.start()
-
-    # Run selftest
+    # Run the selftest FIRST, on its own monitor. The selftest deliberately dials
+    # a disallowed host; if the run's monitor were already installed it would
+    # record that dial as an egress violation of the run itself.
     selftest_result = "PASS"
     denied_host_dialed = None
     try:
         denied_host_dialed = _run_monitor_selftest()
     except Exception:
         selftest_result = "FAIL"
+
+    # Set up the monitor for the run proper.
+    monitor = EgressMonitor(allowlist)
+    monitor.start()
 
     # Connect to endpoint
     try:
@@ -138,7 +146,7 @@ def run_command(
 
         cost_data = {
             "wall_clock_s": 0,
-            "requests": len(egress_summary["attempts"]),
+            "requests": sum(a.get("count", 1) for a in egress_summary["attempts"]),
             "usd": None,
             "note": "self-hosted; no per-token price applies",
         }
@@ -227,29 +235,55 @@ def selftest_command() -> int:
 
 
 def _run_monitor_selftest() -> str:
-    """Try to connect to a disallowed host and verify it was blocked."""
+    """Dial a disallowed host and assert the monitor recorded it as denied.
+
+    Raises:
+        MonitorSelftestError: if the dial produced no recorded denial. The
+            selftest must never report PASS without observing one, so every
+            path that fails to observe a denial raises here rather than
+            falling through to a hard-coded hostname.
+    """
     monitor = EgressMonitor(allowlist={"allowed.local:8000"})
     monitor.start()
 
-    # Try to connect to disallowed host
+    # Deliberately dial a host that is not on this monitor's allowlist.
+    #
+    # The resolution step is explicit on purpose. `socket.connect(("host", port))`
+    # resolves the name inside CPython's C layer, which emits no `socket.connect`
+    # audit event when resolution fails - so a bare connect to an unresolvable
+    # host is invisible to an audit hook. Every real Python HTTP client resolves
+    # via `socket.getaddrinfo` first, which is audited, so that is what the
+    # selftest exercises.
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        # Try to connect to a host we know won't work and isn't allowed
+        addrinfo = socket.getaddrinfo(SELFTEST_HOST, 443, type=socket.SOCK_STREAM)
+    except socket.gaierror:
+        # Expected: the host does not resolve. The attempt is the test, not the
+        # connection - what matters is whether the monitor saw it.
+        addrinfo = []
+
+    for family, socktype, proto, _canonname, sockaddr in addrinfo:
         try:
-            sock.connect(("blocked.invalid", 443))
-        except (socket.gaierror, socket.timeout, ConnectionRefusedError, OSError):
-            # Expected
+            sock = socket.socket(family, socktype, proto)
+            sock.settimeout(1)
+            try:
+                sock.connect(sockaddr)
+            except (socket.timeout, ConnectionRefusedError, OSError):
+                pass
+            finally:
+                sock.close()
+        except OSError:  # pragma: no cover - socket() itself failing
             pass
-        finally:
-            sock.close()
-    except Exception:
-        pass
 
-    # Check if violation was recorded
-    if monitor.had_violations():
-        violations = monitor.get_violations()
-        if violations:
-            return violations[0].host
+    if not monitor.had_violations():
+        raise MonitorSelftestError(
+            f"monitor recorded no denied attempt for {SELFTEST_HOST}:443 - "
+            "the audit hook is not observing egress, so this run is unverified"
+        )
 
-    return "blocked.invalid"
+    violations = monitor.get_violations()
+    observed = violations[0].host
+    if observed != SELFTEST_HOST:
+        raise MonitorSelftestError(
+            f"selftest dialed {SELFTEST_HOST} but the monitor recorded {observed}"
+        )
+    return observed

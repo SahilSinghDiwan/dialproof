@@ -101,12 +101,24 @@ class Report:
         egress = report["egress"]
         axes = report["axes"]
 
-        socket_count = len(egress["attempts"])
-        plural = "s" if socket_count != 1 else ""
-        socket_text = f"**Egress: {egress['verdict']}** — {socket_count} socket{plural}"
+        attempts = egress["attempts"]
+        # `count` is the number of connection attempts to that destination; the
+        # number of entries is the number of distinct destinations. Report both,
+        # so this rendering can never disagree with the JSON it was rendered from.
+        attempt_count = sum(a.get("count", 1) for a in attempts)
+        destinations = len(attempts)
+        socket_text = (
+            f"**Egress: {egress['verdict']}** — {attempt_count} connection "
+            f"attempt{'s' if attempt_count != 1 else ''} to "
+            f"{destinations} destination{'s' if destinations != 1 else ''}"
+        )
 
-        if egress["allowlist"]:
-            socket_text += f", all to `{', '.join(egress['allowlist'])}`"
+        if attempts:
+            dest_list = ", ".join(
+                f"`{a['host']}:{a['port']}`" if a.get("port") else f"`{a['host']}`"
+                for a in attempts
+            )
+            socket_text += f": {dest_list}"
 
         lines = [
             f"### {endpoint['server']} · {endpoint['model']} · {report['timestamp'][:10]}",
@@ -224,4 +236,8 @@ class Report:
             cost=data["cost"],
         )
         report.artifacts_sha256 = data.get("artifacts_sha256", "")
+        # Preserve the recorded run time; a re-render must not restamp the report
+        # with the date it was rendered on.
+        if data.get("timestamp"):
+            report.timestamp = data["timestamp"]
         return report

@@ -20,7 +20,7 @@ def main():
     try:
         time.sleep(0.5)
 
-        out_dir = Path(__file__).parent.parent / "sample_runs" / "mock-endpoint-test"
+        out_dir = Path(__file__).parent.parent / "runs" / "mock-endpoint-test"
         out_dir.mkdir(parents=True, exist_ok=True)
 
         print(f"Running dialproof against {endpoint_url}...")

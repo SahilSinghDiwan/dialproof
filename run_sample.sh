@@ -22,10 +22,10 @@ python3 -m dialproof.cli run \
     --endpoint "$ENDPOINT_URL" \
     --model test-model \
     --allow "127.0.0.1:$PORT" \
-    --out "sample_runs/2026-09-19-mock-endpoint"
+    --out "runs/mock-endpoint"
 
 # Kill the endpoint
 kill $ENDPOINT_PID 2>/dev/null || true
 
-echo "✓ Sample report generated in sample_runs/2026-09-19-mock-endpoint/"
-ls -la sample_runs/2026-09-19-mock-endpoint/
+echo "✓ Sample report generated in runs/mock-endpoint/"
+ls -la runs/mock-endpoint/
